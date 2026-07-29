@@ -1,0 +1,54 @@
+[
+  {
+    "id": "evt-5001",
+    "orderId": "ORD-88213",
+    "type": "damage",
+    "severity": "high",
+    "originWarehouse": "wh-nj",
+    "destination": "Boston, MA",
+    "customerName": "R. Alvarez",
+    "orderValue": 214.99,
+    "daysInTransit": 2,
+    "details": "Carrier scan shows 'damaged in transit' — package photo flagged by inbound QA at last hub.",
+    "timestamp": "2026-07-25T09:12:00Z"
+  },
+  {
+    "id": "evt-5002",
+    "orderId": "ORD-88240",
+    "type": "address_mismatch",
+    "severity": "medium",
+    "originWarehouse": "wh-dal",
+    "destination": "Unit 4B, 1122 Comal St, Austin, TX",
+    "customerName": "J. Whitfield",
+    "orderValue": 58.5,
+    "daysInTransit": 0,
+    "details": "Carrier flagged unit number missing from label; matches a known partial-address pattern for this ZIP.",
+    "timestamp": "2026-07-25T09:20:00Z"
+  },
+  {
+    "id": "evt-5003",
+    "orderId": "ORD-88266",
+    "type": "delay",
+    "severity": "critical",
+    "originWarehouse": "wh-chi",
+    "destination": "Minneapolis, MN",
+    "customerName": "S. Okafor",
+    "orderValue": 640.0,
+    "daysInTransit": 6,
+    "details": "Package has not scanned in 3 days after a regional carrier hub outage; original ETA missed by 4 days.",
+    "timestamp": "2026-07-25T09:31:00Z"
+  },
+  {
+    "id": "evt-5004",
+    "orderId": "ORD-88299",
+    "type": "lost",
+    "severity": "critical",
+    "originWarehouse": "wh-la",
+    "destination": "Reno, NV",
+    "customerName": "T. Nguyen",
+    "orderValue": 389.0,
+    "daysInTransit": 9,
+    "details": "No scan events for 7 days; carrier tracking terminated at regional sort facility with no exception code.",
+    "timestamp": "2026-07-25T09:44:00Z"
+  }
+]

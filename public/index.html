@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fulfillment Exception Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0F;
+    --bg-panel: #14141C;
+    --bg-raised: #1D1D28;
+    --line: #2A2A38;
+    --blue: #4CC9F0;
+    --blue-dim: #2B8AA8;
+    --violet: #B185F0;
+    --magenta: #F072C0;
+    --amber: #FFC857;
+    --green: #4ADE80;
+    --red: #FF5D5D;
+    --ink: #ECECF5;
+    --ink-dim: #8B8B9E;
+    --sans: "Space Grotesk", -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(76,201,240,0.06) 0%, transparent 40%),
+      radial-gradient(circle at 85% 30%, rgba(177,133,240,0.06) 0%, transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(240,114,192,0.05) 0%, transparent 45%);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+  }
+
+  a { color: inherit; }
+
+  header {
+    border-bottom: 1px solid var(--line);
+    padding: 24px 32px 18px;
+    display: flex; align-items: baseline; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+    background: rgba(10,10,15,0.75);
+    backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 20;
+  }
+
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--blue); display: inline-block; margin-right: 4px;
+    box-shadow: 0 0 10px var(--blue), 0 0 0 4px rgba(76,201,240,0.15);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  h1 {
+    font-family: var(--sans); font-size: 20px; font-weight: 600;
+    letter-spacing: 0.01em; margin: 0; color: var(--ink);
+  }
+
+  nav a {
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim);
+    text-decoration: none; margin-left: 22px; padding-bottom: 2px;
+    border-bottom: 1px solid transparent; transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  nav a:hover { color: var(--blue); border-bottom-color: var(--blue); }
+
+  main { max-width: 1040px; margin: 0 auto; padding: 36px 32px 100px; }
+
+  .tabbar { display: flex; gap: 6px; margin-bottom: 36px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .tab-btn {
+    font-family: var(--sans); font-weight: 600; font-size: 13px;
+    color: var(--ink-dim); background: none; border: none;
+    padding: 12px 16px; cursor: pointer; position: relative;
+    border-radius: 8px 8px 0 0; transition: color 0.15s ease, background 0.15s ease;
+  }
+  .tab-btn:hover { color: var(--ink); background: rgba(76,201,240,0.06); }
+  .tab-btn.active { color: var(--blue); }
+  .tab-btn.active::after {
+    content: ""; position: absolute; left: 8px; right: 8px; bottom: -1px;
+    height: 2px; background: var(--blue); border-radius: 2px;
+    box-shadow: 0 0 8px var(--blue);
+  }
+
+  .tab-panel { display: none; animation: fade-in 0.25s ease; }
+  .tab-panel.active { display: block; }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+  .hero-eyebrow {
+    font-family: var(--mono); font-size: 11px; color: var(--blue);
+    letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-eyebrow::before { content: ""; width: 18px; height: 1px; background: var(--blue); }
+
+  .hero h2 {
+    font-family: var(--sans); font-size: 32px; font-weight: 700; line-height: 1.28;
+    max-width: 680px; margin: 0 0 14px; color: var(--ink);
+  }
+  .hero p { color: var(--ink-dim); max-width: 590px; font-size: 14.5px; margin: 0 0 26px; }
+
+  .fire-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+
+  select.picker {
+    background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink);
+    font-family: var(--mono); font-size: 12px; padding: 12px 14px; border-radius: 8px;
+    appearance: none; cursor: pointer;
+  }
+  select.picker:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  button.fire {
+    background: linear-gradient(135deg, var(--blue), var(--violet));
+    color: #06060A; border: none; font-family: var(--sans); font-weight: 700; font-size: 13px;
+    padding: 13px 22px; border-radius: 8px; cursor: pointer;
+    transition: transform 0.12s ease, filter 0.15s ease;
+  }
+  button.fire:hover { filter: brightness(1.1); }
+  button.fire:active { transform: scale(0.98); }
+  button.fire:disabled { opacity: 0.5; cursor: wait; }
+
+  .status-line { font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim); }
+
+  .filter-row { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .filter-chip {
+    font-family: var(--mono); font-size: 11px; padding: 6px 13px; border-radius: 20px;
+    border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink-dim); cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .filter-chip:hover { border-color: var(--blue); color: var(--ink); }
+  .filter-chip.active { background: var(--blue); border-color: var(--blue); color: #06060A; }
+
+  section.log-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-top: 1px solid var(--line); padding-top: 24px; margin-bottom: 18px;
+  }
+  section.log-header h3 { font-family: var(--sans); font-size: 15px; font-weight: 600; color: var(--ink); margin: 0; }
+
+  .empty-state {
+    font-family: var(--mono); font-size: 12.5px; color: var(--ink-dim);
+    border: 1px dashed var(--line); border-radius: 12px; padding: 30px; text-align: center;
+    background: var(--bg-panel);
+  }
+
+  .exception-card {
+    background: var(--bg-panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 22px; margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3); animation: rise-in 0.4s ease;
+  }
+  @keyframes rise-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .card-top { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .card-top .order { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--ink); }
+
+  .badge { font-family: var(--mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+  .badge.type-delay { color: var(--amber); background: rgba(255,200,87,0.12); }
+  .badge.type-damage { color: var(--red); background: rgba(255,93,93,0.12); }
+  .badge.type-address_mismatch { color: var(--violet); background: rgba(177,133,240,0.12); }
+  .badge.type-lost { color: var(--magenta); background: rgba(240,114,192,0.12); }
+
+  .action-tag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 5px 11px; border-radius: 6px; font-weight: 600; display: inline-block; margin-bottom: 10px;
+  }
+  .action-tag.reroute { color: var(--blue); background: rgba(76,201,240,0.12); }
+  .action-tag.refund { color: var(--green); background: rgba(74,222,128,0.12); }
+  .action-tag.escalate { color: var(--red); background: rgba(255,93,93,0.12); }
+  .action-tag.monitor { color: var(--ink-dim); background: rgba(139,139,158,0.12); }
+
+  .reasoning { font-size: 13.5px; color: var(--ink); margin: 0 0 12px; }
+  .meta-row { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 10px; }
+
+  details summary { font-family: var(--mono); font-size: 11px; color: var(--blue); cursor: pointer; letter-spacing: 0.02em; list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary:hover { color: var(--ink); }
+  pre.email {
+    font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--bg-raised);
+    border: 1px solid var(--line); border-radius: 8px; padding: 16px; white-space: pre-wrap; margin-top: 10px;
+  }
+
+  /* Network tab */
+  #networkCanvasWrap {
+    background: var(--bg-panel); border: 1px solid var(--line); border-radius: 14px;
+    overflow: hidden; position: relative; margin-bottom: 20px;
+  }
+  #networkCanvasWrap canvas { display: block; width: 100%; height: 480px; cursor: grab; }
+  #networkCanvasWrap canvas:active { cursor: grabbing; }
+  .network-hint {
+    position: absolute; bottom: 14px; left: 18px; font-family: var(--mono); font-size: 10.5px;
+    color: var(--ink-dim); background: rgba(10,10,15,0.6); padding: 5px 10px; border-radius: 6px;
+  }
+  .legend-row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; font-family: var(--mono); font-size: 11px; color: var(--ink-dim); }
+  .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+  .wh-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .wh-card { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .wh-card .wh-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .wh-card .wh-region { font-family: var(--mono); font-size: 10.5px; color: var(--ink-dim); margin-bottom: 8px; }
+  .util-track { background: var(--bg-raised); border-radius: 4px; height: 6px; overflow: hidden; }
+  .util-fill { height: 100%; border-radius: 4px; }
+
+  /* Analytics */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 32px; }
+  .stat-card { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .stat-card .stat-value { font-family: var(--sans); font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .stat-card .stat-value.blue { color: var(--blue); }
+  .stat-card .stat-value.green { color: var(--green); }
+  .stat-card .stat-value.red { color: var(--red); }
+  .stat-card .stat-value.violet { color: var(--violet); }
+  .stat-card .stat-label { font-family: var(--mono); font-size: 10.5px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .chart-block { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; margin-bottom: 18px; }
+  .chart-block h4 { font-family: var(--sans); font-size: 14px; font-weight: 600; margin: 0 0 16px; color: var(--ink); }
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 11px; }
+  .bar-row .bar-label { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); width: 130px; flex-shrink: 0; text-align: right; }
+  .bar-track { flex: 1; background: var(--bg-raised); border-radius: 6px; height: 16px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; }
+  .bar-count { font-family: var(--mono); font-size: 11px; color: var(--ink); width: 24px; }
+
+  /* Chat */
+  .chat-shell { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; height: 460px; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; }
+  .chat-msg { max-width: 78%; padding: 11px 15px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; }
+  .chat-msg.user { align-self: flex-end; background: var(--blue); color: #06060A; border-bottom-right-radius: 3px; font-weight: 500; }
+  .chat-msg.agent { align-self: flex-start; background: var(--bg-raised); color: var(--ink); border-bottom-left-radius: 3px; }
+  .chat-msg.agent.thinking { color: var(--ink-dim); font-style: italic; }
+  .chat-input-row { display: flex; gap: 10px; padding: 16px; border-top: 1px solid var(--line); }
+  .chat-input-row input {
+    flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px;
+    font-family: var(--sans); font-size: 13px; background: var(--bg); color: var(--ink);
+  }
+  .chat-input-row input:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+  .chat-input-row button {
+    background: var(--blue); color: #06060A; border: none; border-radius: 8px;
+    padding: 0 20px; font-family: var(--sans); font-weight: 700; font-size: 12.5px; cursor: pointer;
+  }
+  .chat-input-row button:disabled { opacity: 0.5; cursor: wait; }
+  .suggestion-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .suggestion-chip {
+    font-family: var(--mono); font-size: 10.5px; padding: 7px 13px; border-radius: 20px;
+    border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink-dim); cursor: pointer;
+  }
+  .suggestion-chip:hover { border-color: var(--blue); color: var(--blue); }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 32px; font-family: var(--mono); font-size: 11px; color: var(--ink-dim); text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><h1><span class="dot"></span>Fulfillment Exception Agent</h1></div>
+  <nav>
+    <a href="https://github.com/arleenkaur02/fulfillment-exception-agent" target="_blank">Source</a>
+    <a href="/health">Health</a>
+    <a href="/exceptions">Raw JSON</a>
+  </nav>
+</header>
+
+<main>
+  <div class="tabbar">
+    <button class="tab-btn active" data-tab="demo">Live Demo</button>
+    <button class="tab-btn" data-tab="network">Network Map</button>
+    <button class="tab-btn" data-tab="analytics">Analytics</button>
+    <button class="tab-btn" data-tab="chat">Ask the Agent</button>
+  </div>
+
+  <!-- LIVE DEMO -->
+  <div class="tab-panel active" id="tab-demo">
+    <div class="hero-eyebrow">Live demo — no login required</div>
+    <h2>A shipment goes wrong. Watch the agent decide what happens next.</h2>
+    <p>
+      Every exception — a delay, damage, an address mismatch, a lost package — gets classified,
+      scored against order value and severity, and routed to reroute, refund, escalate, or monitor,
+      with a drafted customer email and an SLA clock attached automatically.
+    </p>
+
+    <div class="fire-row">
+      <select class="picker" id="scenario">
+        <option value="damage">Damage — high severity, in-transit damage confirmed</option>
+        <option value="address_mismatch">Address mismatch — caught pre-shipment</option>
+        <option value="delay">Delay — critical, 6 days overdue</option>
+        <option value="lost">Lost — no scans for 9 days, high value</option>
+      </select>
+      <button class="fire" id="fireBtn">Fire event →</button>
+      <span class="status-line" id="statusLine"></span>
+    </div>
+
+    <section class="log-header">
+      <h3>Exception log</h3>
+      <span class="status-line" id="countLine"></span>
+    </section>
+
+    <div class="filter-row">
+      <button class="filter-chip active" data-filter="all">All</button>
+      <button class="filter-chip" data-filter="reroute">Reroute</button>
+      <button class="filter-chip" data-filter="refund">Refund</button>
+      <button class="filter-chip" data-filter="escalate">Escalate</button>
+      <button class="filter-chip" data-filter="monitor">Monitor</button>
+    </div>
+
+    <div id="exceptionList">
+      <div class="empty-state">No exceptions yet. Fire an event above to see the pipeline run.</div>
+    </div>
+  </div>
+
+  <!-- NETWORK MAP (3D) -->
+  <div class="tab-panel" id="tab-network">
+    <div class="hero-eyebrow">Live 3D — drag to rotate, scroll to zoom</div>
+    <h2 style="font-size: 26px;">Fulfillment network</h2>
+    <div class="legend-row">
+      <span><span class="legend-dot" style="background:#4ADE80;"></span>Low utilization</span>
+      <span><span class="legend-dot" style="background:#FFC857;"></span>Moderate</span>
+      <span><span class="legend-dot" style="background:#FF5D5D;"></span>Near capacity</span>
+      <span><span class="legend-dot" style="background:var(--magenta); box-shadow:0 0 6px var(--magenta);"></span>Active exception</span>
+    </div>
+    <div id="networkCanvasWrap">
+      <div class="network-hint">Drag to rotate · scroll to zoom</div>
+    </div>
+    <div class="wh-grid" id="warehouseGrid"></div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="tab-panel" id="tab-analytics">
+    <div class="hero-eyebrow">Computed live from this session's exception log</div>
+    <h2 style="font-size: 26px;">Analytics</h2>
+    <div class="stat-grid" id="statGrid"></div>
+    <div class="chart-block"><h4>Decisions by action</h4><div id="actionChart"></div></div>
+    <div class="chart-block"><h4>Exceptions by type</h4><div id="typeChart"></div></div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="tab-panel" id="tab-chat">
+    <div class="hero-eyebrow">Ask questions about your exceptions</div>
+    <h2 style="font-size: 26px; margin-bottom: 16px;">Ask the Agent</h2>
+    <div class="suggestion-chips">
+      <button class="suggestion-chip" data-q="How many exceptions have happened so far?">How many exceptions so far?</button>
+      <button class="suggestion-chip" data-q="What's the total estimated cost across all exceptions?">Total estimated cost?</button>
+      <button class="suggestion-chip" data-q="Which warehouse has the most capacity pressure?">Which warehouse is under pressure?</button>
+    </div>
+    <div class="chat-shell">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg agent">Hi — I can answer questions about exceptions this system has processed, decisions made, and warehouse status. Fire an event on the Live Demo tab first, then ask me about it.</div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Ask about an exception, decision, or warehouse…" />
+        <button id="chatSend">Send</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>Built by Arleen Kaur Teerthy · TypeScript · Express · Three.js · Claude Sonnet · deployed on Render</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+  // ---------- Tabs ----------
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+      if (btn.dataset.tab === "analytics") renderAnalytics();
+      if (btn.dataset.tab === "network") { initNetworkIfNeeded(); onResizeNetwork(); }
+    });
+  });
+
+  // ---------- Scenarios ----------
+  const scenarios = {
+    damage: { orderId: "ORD-", type: "damage", severity: "high", originWarehouse: "wh-nj", destination: "Boston, MA", customerName: "R. Alvarez", orderValue: 214.99, daysInTransit: 2, details: "Carrier scan shows damaged in transit." },
+    address_mismatch: { orderId: "ORD-", type: "address_mismatch", severity: "medium", originWarehouse: "wh-dal", destination: "Austin, TX", customerName: "J. Whitfield", orderValue: 58.5, daysInTransit: 0, details: "Unit number missing from label." },
+    delay: { orderId: "ORD-", type: "delay", severity: "critical", originWarehouse: "wh-chi", destination: "Minneapolis, MN", customerName: "S. Okafor", orderValue: 640.0, daysInTransit: 6, details: "No scans for 3 days after carrier hub outage." },
+    lost: { orderId: "ORD-", type: "lost", severity: "critical", originWarehouse: "wh-la", destination: "Reno, NV", customerName: "T. Nguyen", orderValue: 389.0, daysInTransit: 9, details: "No scan events for 7 days, tracking terminated." }
+  };
+
+  const fireBtn = document.getElementById("fireBtn");
+  const statusLine = document.getElementById("statusLine");
+  const exceptionList = document.getElementById("exceptionList");
+  const countLine = document.getElementById("countLine");
+  let allExceptions = [];
+  let activeFilter = "all";
+
+  function exceptionCardHtml(record) {
+    const e = record.event, d = record.decision;
+    return `
+      <div class="card-top">
+        <span class="order">${e.orderId}</span>
+        <span class="badge type-${e.type}">${e.type.replace("_", " ")}</span>
+      </div>
+      <div class="action-tag ${d.action}">${d.action}</div>
+      <div class="reasoning">${d.reasoning}</div>
+      <div class="meta-row">
+        <span>Order value: $${e.orderValue.toFixed(2)}</span>
+        <span>Est. cost: $${d.estimatedCost.toFixed(2)}</span>
+        <span>SLA: ${d.slaDeadlineMinutes}min</span>
+        <span>Confidence: ${d.confidence}</span>
+      </div>
+      <details><summary>▸ View customer email draft</summary><pre class="email">${record.customerEmailDraft.replace(/</g, "&lt;")}</pre></details>
+    `;
+  }
+
+  function renderExceptionList() {
+    const filtered = activeFilter === "all" ? allExceptions : allExceptions.filter((r) => r.decision.action === activeFilter);
+    countLine.textContent = allExceptions.length + " total";
+    exceptionList.innerHTML = "";
+    if (filtered.length === 0) {
+      exceptionList.innerHTML = `<div class="empty-state">${allExceptions.length === 0 ? "No exceptions yet. Fire an event above to see the pipeline run." : "No exceptions match this filter."}</div>`;
+      return;
+    }
+    filtered.slice().reverse().forEach((r) => {
+      const card = document.createElement("div");
+      card.className = "exception-card";
+      card.innerHTML = exceptionCardHtml(r);
+      exceptionList.appendChild(card);
+    });
+  }
+
+  document.querySelectorAll(".filter-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".filter-chip").forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      activeFilter = chip.dataset.filter;
+      renderExceptionList();
+    });
+  });
+
+  async function loadExceptions() {
+    try {
+      const res = await fetch("/exceptions");
+      allExceptions = await res.json();
+      renderExceptionList();
+    } catch (e) { /* silent */ }
+  }
+
+  fireBtn.addEventListener("click", async () => {
+    const key = document.getElementById("scenario").value;
+    const base = scenarios[key];
+    const event = { ...base, orderId: base.orderId + Math.floor(10000 + Math.random() * 90000), id: "evt-" + Date.now(), timestamp: new Date().toISOString() };
+
+    fireBtn.disabled = true;
+    statusLine.textContent = "Processing… (classification → decision → email draft → SLA)";
+
+    try {
+      const res = await fetch("/webhooks/shipment-event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(event) });
+      const record = await res.json();
+      allExceptions.push(record);
+      renderExceptionList();
+      statusLine.textContent = "Done — decision: " + record.decision.action;
+      pulseWarehouse(event.originWarehouse, record.decision.action);
+    } catch (e) {
+      statusLine.textContent = "Something went wrong — check /health";
+    } finally {
+      fireBtn.disabled = false;
+    }
+  });
+
+  // ---------- Analytics ----------
+  const actionColors = { reroute: "#4CC9F0", refund: "#4ADE80", escalate: "#FF5D5D", monitor: "#8B8B9E" };
+  const typeColors = { delay: "#FFC857", damage: "#FF5D5D", address_mismatch: "#B185F0", lost: "#F072C0" };
+
+  function renderAnalytics() {
+    const statGrid = document.getElementById("statGrid");
+    const actionChart = document.getElementById("actionChart");
+    const typeChart = document.getElementById("typeChart");
+
+    const total = allExceptions.length;
+    const totalCost = allExceptions.reduce((s, r) => s + r.decision.estimatedCost, 0);
+    const escalatedCount = allExceptions.filter((r) => r.decision.action === "escalate").length;
+    const escalatedPct = total ? Math.round((escalatedCount / total) * 100) : 0;
+    const highConf = allExceptions.filter((r) => r.decision.confidence === "high").length;
+    const highConfPct = total ? Math.round((highConf / total) * 100) : 0;
+
+    statGrid.innerHTML = `
+      <div class="stat-card"><div class="stat-value blue">${total}</div><div class="stat-label">Total exceptions</div></div>
+      <div class="stat-card"><div class="stat-value green">$${totalCost.toFixed(0)}</div><div class="stat-label">Total estimated cost</div></div>
+      <div class="stat-card"><div class="stat-value red">${escalatedPct}%</div><div class="stat-label">Escalated to human</div></div>
+      <div class="stat-card"><div class="stat-value violet">${highConfPct}%</div><div class="stat-label">High confidence decisions</div></div>
+    `;
+
+    if (total === 0) {
+      actionChart.innerHTML = typeChart.innerHTML = '<div class="empty-state">Fire some events on the Live Demo tab to see analytics.</div>';
+      return;
+    }
+
+    const actionCounts = { reroute: 0, refund: 0, escalate: 0, monitor: 0 };
+    allExceptions.forEach((r) => { actionCounts[r.decision.action] = (actionCounts[r.decision.action] || 0) + 1; });
+    const maxAction = Math.max(...Object.values(actionCounts), 1);
+    actionChart.innerHTML = Object.entries(actionCounts).map(([action, count]) => `
+      <div class="bar-row"><span class="bar-label">${action}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${(count/maxAction)*100}%; background:${actionColors[action]};"></div></div>
+        <span class="bar-count">${count}</span></div>
+    `).join("");
+
+    const typeCounts = {};
+    allExceptions.forEach((r) => { typeCounts[r.event.type] = (typeCounts[r.event.type] || 0) + 1; });
+    const maxType = Math.max(...Object.values(typeCounts), 1);
+    typeChart.innerHTML = Object.entries(typeCounts).map(([type, count]) => `
+      <div class="bar-row"><span class="bar-label">${type.replace("_"," ")}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${(count/maxType)*100}%; background:${typeColors[type]};"></div></div>
+        <span class="bar-count">${count}</span></div>
+    `).join("");
+  }
+
+  // ---------- Chat ----------
+  const chatMessages = document.getElementById("chatMessages");
+  const chatInput = document.getElementById("chatInput");
+  const chatSend = document.getElementById("chatSend");
+  let chatHistory = [];
+
+  function appendChatMsg(role, text, isThinking = false) {
+    const div = document.createElement("div");
+    div.className = "chat-msg " + role + (isThinking ? " thinking" : "");
+    div.textContent = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return div;
+  }
+
+  async function sendChat(message) {
+    if (!message.trim()) return;
+    appendChatMsg("user", message);
+    chatInput.value = "";
+    chatSend.disabled = true;
+    const thinkingEl = appendChatMsg("agent", "Thinking…", true);
+    try {
+      const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message, history: chatHistory }) });
+      const data = await res.json();
+      thinkingEl.remove();
+      appendChatMsg("agent", data.reply || "I couldn't generate a response.");
+      chatHistory.push({ role: "user", content: message });
+      chatHistory.push({ role: "assistant", content: data.reply || "" });
+    } catch (e) {
+      thinkingEl.remove();
+      appendChatMsg("agent", "Something went wrong reaching the chat agent — check /health.");
+    } finally {
+      chatSend.disabled = false;
+    }
+  }
+
+  chatSend.addEventListener("click", () => sendChat(chatInput.value));
+  chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat(chatInput.value); });
+  document.querySelectorAll(".suggestion-chip").forEach((chip) => chip.addEventListener("click", () => sendChat(chip.dataset.q)));
+
+  // ---------- 3D Network Map ----------
+  let networkInitialized = false;
+  let renderer, scene, camera, controls, warehouseMeshes = {}, warehouseData = [];
+
+  async function initNetworkIfNeeded() {
+    if (networkInitialized) return;
+    networkInitialized = true;
+
+    const res = await fetch("/warehouses");
+    warehouseData = await res.json();
+    renderWarehouseGrid();
+
+    const wrap = document.getElementById("networkCanvasWrap");
+    const width = wrap.clientWidth, height = 480;
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
+    camera.position.set(0, 3, 11);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    wrap.insertBefore(renderer.domElement, wrap.firstChild);
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.6;
+    controls.minDistance = 5;
+    controls.maxDistance = 20;
+
+    scene.add(new THREE.AmbientLight(0x8888aa, 0.9));
+    const point = new THREE.PointLight(0x4cc9f0, 1.2);
+    point.position.set(5, 8, 5);
+    scene.add(point);
+    const point2 = new THREE.PointLight(0xf072c0, 0.6);
+    point2.position.set(-6, -3, -4);
+    scene.add(point2);
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    // Nodes
+    warehouseData.forEach((wh) => {
+      const color = utilColor(wh.capacityUtilization);
+      const geo = new THREE.SphereGeometry(0.28 + wh.capacityUtilization * 0.15, 24, 24);
+      const mat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.35, roughness: 0.4, metalness: 0.2 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(wh.x, wh.y, wh.z);
+      group.add(mesh);
+      warehouseMeshes[wh.id] = { mesh, baseScale: 1, baseColor: color, baseEmissive: 0.35 };
+    });
+
+    // Edges (connect every pair with faint lines)
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x3a3a55, transparent: true, opacity: 0.35 });
+    for (let i = 0; i < warehouseData.length; i++) {
+      for (let j = i + 1; j < warehouseData.length; j++) {
+        const a = warehouseData[i], b = warehouseData[j];
+        const geo = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(a.x, a.y, a.z),
+          new THREE.Vector3(b.x, b.y, b.z),
+        ]);
+        group.add(new THREE.Line(geo, lineMat));
+      }
+    }
+
+    window.addEventListener("resize", onResizeNetwork);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  }
+
+  function utilColor(u) {
+    if (u > 0.85) return new THREE.Color(0xff5d5d);
+    if (u > 0.7) return new THREE.Color(0xffc857);
+    return new THREE.Color(0x4ade80);
+  }
+
+  function onResizeNetwork() {
+    if (!renderer) return;
+    const wrap = document.getElementById("networkCanvasWrap");
+    const width = wrap.clientWidth, height = 480;
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+  }
+
+  function renderWarehouseGrid() {
+    const grid = document.getElementById("warehouseGrid");
+    grid.innerHTML = warehouseData.map((wh) => {
+      const pct = Math.round(wh.capacityUtilization * 100);
+      const color = pct > 85 ? "#FF5D5D" : pct > 70 ? "#FFC857" : "#4ADE80";
+      return `
+        <div class="wh-card">
+          <div class="wh-name">${wh.name}</div>
+          <div class="wh-region">${wh.region}</div>
+          <div class="util-track"><div class="util-fill" style="width:${pct}%; background:${color};"></div></div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function pulseWarehouse(warehouseId, action) {
+    if (!networkInitialized || !warehouseMeshes[warehouseId]) return;
+    const entry = warehouseMeshes[warehouseId];
+    const pulseColor = new THREE.Color(0xf072c0);
+    const originalColor = entry.mesh.material.color.clone();
+    const originalEmissive = entry.mesh.material.emissiveIntensity;
+
+    entry.mesh.material.color.set(pulseColor);
+    entry.mesh.material.emissiveIntensity = 1.2;
+
+    let t = 0;
+    const duration = 90;
+    function step() {
+      t++;
+      const scale = 1 + 0.4 * Math.sin((t / duration) * Math.PI);
+      entry.mesh.scale.set(scale, scale, scale);
+      if (t < duration) {
+        requestAnimationFrame(step);
+      } else {
+        entry.mesh.scale.set(1, 1, 1);
+        entry.mesh.material.color.copy(originalColor);
+        entry.mesh.material.emissiveIntensity = originalEmissive;
+      }
+    }
+    step();
+  }
+
+  loadExceptions();
+</script>
+</body>
+</html>
